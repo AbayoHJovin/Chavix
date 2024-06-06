@@ -4,8 +4,8 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start":"nodemon ./controller/server.js",
-    "dev":"nodemon ./routers/routers.js"
+    "start": "nodemon ./controller/server.js",
+    "dev": "concurrently \"nodemon ./routers/routers.js\" \"nodemon ./controller/server.js\""
   },
   "keywords": [],
   "author": "",
@@ -17,5 +17,8 @@
     "mongoose": "^8.3.5",
     "nodemon": "^3.1.0",
     "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }

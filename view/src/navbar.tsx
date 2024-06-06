@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Navbar({user}) {
   const [isOpen, setIsOpen] = useState(false);
-
+const navigate=useNavigate()
   return (
     <nav className="bg-gray-800">
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
@@ -44,28 +45,28 @@ export default function Navbar({user}) {
           </div>
           <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
             <div className="flex-shrink-0">
-              <a href="/" className="text-white text-lg font-bold">{user}</a>
+              <h1 className="text-white text-lg font-bold">{user}</h1>
             </div>
             <div className="hidden sm:block sm:ml-6">
               <div className="flex space-x-4">
-                <a
-                  href="/"
+                <h1
+                 onClick={()=>navigate('/')}
                   className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Home
-                </a>
-                <a
-                  href="/about"
+                </h1>
+                <h1
+                  onClick={()=>navigate('/home')}
                   className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
                 >
                   DMs
-                </a>
-                <a
-                  href="/services"
-                  className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                </h1>
+                <h1
+                 onClick={()=>navigate('/groups')}
+                  className="text-gray-300 hover:bg-gray-700 cursor-pointer hover:text-white px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Groups
-                </a>
+                </h1>
                 <a
                   href="/contact"
                   className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"

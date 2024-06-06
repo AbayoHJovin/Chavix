@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const User = require("../model/model");
 const Dms = require("../model/dms");
 const Messages = require("../model/messages");
+const Group = require("../model/group");
 
 const app = express();
 app.use(express.json());
@@ -93,14 +94,23 @@ app.post("/dm", async (req, res) => {
   }
 });
 app.post("/msg", async (req, res) => {
-  const { dm, msg } = req.body;
+  const { dm, senderName, msg } = req.body;
   try {
-    if (!msg || !dm) {
+    if (!msg || !senderName || !dm) {
       throw new Error("No msg obtained");
     }
+    const time = new Date();
+    const hours = time.getHours();
+    const minutes = time.getMinutes();
+    const timeString = `${hours < 10 ? "0" + hours : hours}:${
+      minutes < 10 ? "0" + minutes : minutes
+    }`;
+    console.log(timeString);
     const sendMsg = await Messages.create({
       dm: dm,
+      senderName: senderName,
       text: msg,
+      time: timeString,
     });
     return res.status(201).json({ resp: "Messages added" });
   } catch (e) {
@@ -115,20 +125,39 @@ app.get("/saved", async (req, res) => {
       throw new Error("Not signed in");
     }
     const findMessage = await Messages.find({ dm: id });
-
-    const findTheOwnersOfMessage = await Dms.findById(id);
-
-    const senderId = findTheOwnersOfMessage.senderId;
-    const receiverId = findTheOwnersOfMessage.receiverId;
-
-    const findTheSender = await User.findById(senderId);
-    const findTheReceiver = await User.findById(receiverId);
     return res.status(200).json({
       resp: findMessage,
-      sender: findTheSender.username,
-      receiver: findTheReceiver.username,
+      sender: findMessage.senderName,
     });
   } catch (e) {
     return res.status(401).json({ resp: e.message || "Something went wrong" });
+  }
+});
+
+app.get("/showGroups", async (req, res) => {
+  try {
+    const retrieveAll = await Group.find({});
+    if (!retrieveAll) {
+      throw new Error("No users");
+    }
+    return res.status(200).json({ resp: retrieveAll });
+  } catch (e) {
+    return res.status(401).json({ resp: e.message || "Something went wrong" });
+  }
+});
+
+app.post("/createGrp", async (req, res) => {
+  const { grpName, members } = req.body;
+  try {
+    if (!grpName || !members) {
+      throw new Error("No details entered");
+    }
+    const newGrp = await Group.create({
+      groupName: grpName,
+      members: members,
+    });
+    return res.status(201).json({message:"Group created successfully",data:newGrp})
+  } catch (e) {
+    return res.status(401).json({message:e.message || "Something went wrong"})
   }
 });

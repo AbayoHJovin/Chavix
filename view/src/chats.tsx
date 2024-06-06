@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import { BsSend } from "react-icons/bs";
@@ -20,9 +20,8 @@ export default function Chats() {
   const [inputValue, setInputValue] = useState("");
   const [dmId, setDmId] = useState("");
   const [user, setUser] = useState("");
-  const [senderName, setSenderName] = useState("");
-  const [, setReceiverName] = useState("");
   const [activeChat, setActiveChat] = useState("");
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     fetch("http://localhost:1025/all", {
@@ -75,8 +74,10 @@ export default function Chats() {
     if (inputValue.trim() !== "") {
       const newMessage = {
         sender: sender,
+        senderName: user,
         room: dmId,
         text: inputValue,
+        read: false,
       };
       setMessages((prevMessages) => [...prevMessages, newMessage]);
       socket.emit("msg", newMessage);
@@ -88,14 +89,14 @@ export default function Chats() {
         },
         body: JSON.stringify({
           dm: dmId,
-          sender: sender,
+          senderName: user,
           msg: inputValue,
         }),
       });
     }
   };
 
-  const handleKeyPress = (event: KeyboardEvent) => {
+  const handleKeyPress = (event) => {
     if (event.key === "Enter") {
       handleSendMessage();
     }
@@ -112,10 +113,9 @@ export default function Chats() {
       })
         .then((resp) => resp.json())
         .then((data) => {
-          setReceiverName(data.receiver);
-          setSenderName(data.sender);
-
-          setMessages(data.resp);
+          setMessages(
+            data.resp.map((message) => ({ ...message, read: false }))
+          );
         })
         .catch((e) => console.error(e))
         .finally(() => {
@@ -124,13 +124,48 @@ export default function Chats() {
     }
   }, [params.dmId, setMessages, setLoading]);
 
+  useEffect(() => {
+    socket.on("msg", (newMessage) => {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { ...newMessage, read: false },
+      ]);
+    });
+
+    return () => {
+      socket.off("msg");
+    };
+  }, [socket, setMessages]);
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  const handleScroll = () => {
+    const scrollTop = messagesEndRef.current.parentElement.scrollTop;
+    const clientHeight = messagesEndRef.current.parentElement.clientHeight;
+    const scrollHeight = messagesEndRef.current.parentElement.scrollHeight;
+
+    if (scrollTop + clientHeight >= scrollHeight) {
+      setMessages((prevMessages) =>
+        prevMessages.map((message) =>
+          message.sender !== user && !message.read
+            ? { ...message, read: true }
+            : message
+        )
+      );
+    }
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
     <div className="flex h-screen overflow-y-hidden">
-      <div className="w-[25rem] overflow-y-scroll p-4 ">
+      <div className="w-[25rem] overflow-y-scroll p-4">
         <h1 className="font-bold text-[3rem] ml-8">Chats</h1>
         <div className="flex ml-9">
           <div className="relative">
@@ -148,7 +183,9 @@ export default function Chats() {
             .map((item, index) => (
               <div
                 className={`flex p-3 max-w-[20rem] ml-4 rounded-md mb-4 cursor-pointer ${
-                  activeChat === item._id ? "bg-blue-200" : "bg-pink-200"
+                  activeChat === item._id
+                    ? "bg-blue-200"
+                    : "bg-transparent border border-6 border-black"
                 }`}
                 key={index}
                 onClick={() => handleClick(item)}
@@ -163,7 +200,10 @@ export default function Chats() {
         )}
       </div>
       {dmId.length > 0 ? (
-        <div className="flex-1 flex flex-col overflow-y-scroll p-4 hideScrollbar">
+        <div
+          className="flex-1 flex flex-col overflow-y-scroll p-4 hideScrollbar"
+          onScroll={handleScroll}
+        >
           <div className="flex-1 p-4 overflow-y-auto">
             <div className="bg-gray-100 flex flex-col h-full overflow-y-scroll">
               {messages.length === 0 ? (
@@ -173,20 +213,34 @@ export default function Chats() {
                   <div
                     key={index}
                     className={`flex ${
-                      user == senderName ? "justify-end" : "justify-start"
+                      user === message.senderName
+                        ? "justify-end"
+                        : "justify-start"
                     } mb-2`}
                   >
                     <div className="flex flex-col items-end">
                       <h1 className="text-gray-700 font-semibold mb-1">
-                        {user}
+                        {message.senderName === user
+                          ? "You"
+                          : message.senderName}
                       </h1>
-                      <div className="bg-blue-500 rounded-br-none text-white rounded-xl py-2 px-4 shadow-md">
+                      <div
+                        className={`${
+                          user === message.senderName
+                            ? "bg-blue-500"
+                            : message.read
+                            ? "bg-gray-500"
+                            : "bg-green-500"
+                        } rounded-br-none text-white rounded-xl py-2 px-4 shadow-md`}
+                      >
                         {message.text}
                       </div>
+                      <h1>{message.time}</h1>
                     </div>
                   </div>
                 ))
               )}
+              <div ref={messagesEndRef} />
             </div>
           </div>
           <div className="flex-none p-4 border-t border-gray-300">
@@ -195,7 +249,7 @@ export default function Chats() {
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={() => handleKeyPress}
+                onKeyDown={handleKeyPress}
                 className="flex-1 rounded-lg p-2 mr-2 border focus:outline-none"
                 placeholder="Type your message..."
               />

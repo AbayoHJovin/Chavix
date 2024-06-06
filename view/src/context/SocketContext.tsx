@@ -28,8 +28,6 @@ export const SocketContextProvider: React.FC<SocketContextProviderProps> = ({
       }
     });
 
-    console.log(connected);
-
     socket.on("disconnect", () => {
       setConnected(false);
     });
