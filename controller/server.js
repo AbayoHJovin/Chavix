@@ -5,17 +5,14 @@ const io = require("socket.io")(port, {
 
 io.on("connection", (socket) => {
   socket.on("msg", (message) => {
-    console.log(message);
-    console.log(`Message received: ${message.text}`);
-    // if (message.room !== "") {
-      // io.to(message.room).emit("dm", message);
-    // } else {
-      socket.broadcast.emit("receive", message);
-    // }
+    io.to(message.room).emit("dm", message);
+
+    // socket.broadcast.emit("dm",message)
+    console.log(`Message received: ${message.text} in room ${message.room}`);
   });
 
-  socket.on("join", (room) => {
-    console.log(`User ${socket.id} joined room: ${room}`);
+  socket.on("join", (room, name) => {
+    console.log(`${name} joined room: ${room}`);
     socket.join(room);
   });
 

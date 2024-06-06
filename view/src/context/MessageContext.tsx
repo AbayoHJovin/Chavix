@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Dispatch, SetStateAction, createContext, useState } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  createContext,
+  useState,
+} from "react";
 
 export const MessageContext = createContext<{
   messages: any[];
@@ -27,3 +32,5 @@ export const MessageContextProvider: React.FC<{
     </MessageContext.Provider>
   );
 };
+
+export const useMessages = () => React.useContext(MessageContext);

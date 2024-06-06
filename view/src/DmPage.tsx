@@ -1,21 +1,18 @@
-import { useContext, useEffect, useState } from "react";
-import { MessageContext } from "./MessageContext";
+import { useEffect, useState } from "react";
+import { useMessages } from "./context/MessageContext";
 import { useNavigate, useParams } from "react-router-dom";
-import { io } from "socket.io-client";
 import { BsSendArrowUp } from "react-icons/bs";
+import { useWebSocket } from "./context/SocketContext";
 
 export default function DmPage() {
   const navigate = useNavigate();
-  const { messages, setMessages, loading, setLoading } =
-    useContext(MessageContext);
+  const { messages, setMessages, loading, setLoading } = useMessages();
+  const { socket } = useWebSocket();
   const params = useParams();
   const [inputValue, setInputValue] = useState("");
-  const [connected, setConnected] = useState(false);
-  const [received, setReceived] = useState([]);
-  const socket = io("http://localhost:1024");
   const [dmId, setdmId] = useState("");
-  const [user, setUser] = useState("");
-  const [room, setRoom] = useState();
+  const [, setUser] = useState("");
+
   useEffect(() => {
     const dm = localStorage.getItem("dmId");
     if (!dm) {
@@ -27,29 +24,6 @@ export default function DmPage() {
     const userName = sessionStorage.getItem("user");
     setUser(userName);
   }, []);
-  useEffect(() => {
-    socket.on("connect", () => {
-      if (!connected) {
-        console.log(socket.id);
-        setConnected(true);
-      }
-    });
-
-    socket.on("receive", (message) => {
-      setReceived((prevMessages) => [...prevMessages, message]);
-    });
-
-    socket.on("dm", (message) => {
-      console.log(message);
-      setReceived((prevMessages) => [...prevMessages, message]);
-    });
-
-    return () => {
-      socket.off("connect");
-      socket.off("receive");
-      socket.off("dm");
-    };
-  }, [connected, socket]);
 
   const handleSendMessage = () => {
     if (inputValue.trim() !== "") {
@@ -130,8 +104,8 @@ export default function DmPage() {
           </li>
         </ul>
       </nav>
-      <div className="bg-gray-100 mx-36 flex flex-col h-screen ">
-        <div className="flex-1 p-4 overflow-y-auto">
+      <div className="flex-1 p-4 overflow-y-auto">
+        <div className="bg-gray-100 mx-36 flex flex-col h-screen ">
           {messages.length === 0 ? (
             <p>you have no messages yet</p>
           ) : (
@@ -143,13 +117,6 @@ export default function DmPage() {
               </div>
             ))
           )}
-          {received.map((message, index) => (
-            <div key={index} className="flex justify-start mb-2">
-              <div className="bg-gray-300 text-black rounded-xl rounded-bl-none py-2 px-4">
-                {message.text}
-              </div>
-            </div>
-          ))}
         </div>
         <div className="flex items-center p-4 border-t border-gray-300">
           <input

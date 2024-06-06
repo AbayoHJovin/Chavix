@@ -4,8 +4,9 @@ import App from "./App.tsx";
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Start from "./start.tsx";
-import { MessageContextProvider } from "./MessageContext.tsx";
-import DmPage from "./DmPage.tsx";
+import { MessageContextProvider } from "./context/MessageContext.tsx";
+import { SocketContextProvider } from "./context/SocketContext.tsx";
+// import DmPage from "./DmPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -19,14 +20,16 @@ const router = createBrowserRouter([
 
   {
     path: "/dm/:dmId",
-    element: <DmPage />,
+    element: <App />,
   },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <MessageContextProvider>
-      <RouterProvider router={router} />
+      <SocketContextProvider>
+        <RouterProvider router={router} />
+      </SocketContextProvider>
     </MessageContextProvider>
   </React.StrictMode>
 );

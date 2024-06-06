@@ -115,27 +115,19 @@ app.get("/saved", async (req, res) => {
       throw new Error("Not signed in");
     }
     const findMessage = await Messages.find({ dm: id });
-    // const dm=findMessage[0]
-    // console.log(`dm:${dm}`);
-    // const findTheOwnersOfMessage = await Dms.findById(dm);
-    // console.log(findTheOwnersOfMessage);
-    // if (!findTheOwnersOfMessage) {
-    //   throw new Error("no messages");
-    // }
-    // const senderId = findTheOwnersOfMessage.senderId;
-    // const receiverId = findTheOwnersOfMessage.receiverId;
-    // console.log(receiverId);
 
-    // const findTheSender = await User.findById(senderId);
-    // const findTheReceiver = await User.findById(receiverId);
-    return res
-      .status(200)
-      .json({
-        resp: findMessage,
-        // user:dm
-        // sender: findTheSender,
-        // receiver: findTheReceiver,
-      });
+    const findTheOwnersOfMessage = await Dms.findById(id);
+
+    const senderId = findTheOwnersOfMessage.senderId;
+    const receiverId = findTheOwnersOfMessage.receiverId;
+
+    const findTheSender = await User.findById(senderId);
+    const findTheReceiver = await User.findById(receiverId);
+    return res.status(200).json({
+      resp: findMessage,
+      sender: findTheSender.username,
+      receiver: findTheReceiver.username,
+    });
   } catch (e) {
     return res.status(401).json({ resp: e.message || "Something went wrong" });
   }
