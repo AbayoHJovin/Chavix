@@ -6,8 +6,8 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Start from "./start.tsx";
 import { MessageContextProvider } from "./context/MessageContext.tsx";
 import { SocketContextProvider } from "./context/SocketContext.tsx";
-import Groups from "./groups.tsx";
-// import DmPage from "./DmPage.tsx";
+import Groups from "./groups.jsx";
+import DmPage from "./DmPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -24,7 +24,8 @@ const router = createBrowserRouter([
     element: <App />,
   },
   { path: "/groups", element: <Groups /> },
-  { path: "/groupId", element: <Groups /> },
+  { path: "/dmPage/:dmId", element: <DmPage /> },
+  { path: "/group/:grpId", element: <Groups /> },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

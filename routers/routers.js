@@ -55,7 +55,7 @@ app.post("/login", async (req, res) => {
     const userId = check._id;
     return res.status(200).json({ user: wantedDetails, id: userId });
   } catch (e) {
-    return res.status(200).json({ msg: e.message || "Something went wrong" });
+    return res.status(401).json({ msg: e.message || "Something went wrong" });
   }
 });
 app.get("/all", async (req, res) => {
@@ -105,7 +105,6 @@ app.post("/msg", async (req, res) => {
     const timeString = `${hours < 10 ? "0" + hours : hours}:${
       minutes < 10 ? "0" + minutes : minutes
     }`;
-    console.log(timeString);
     const sendMsg = await Messages.create({
       dm: dm,
       senderName: senderName,
@@ -120,7 +119,6 @@ app.post("/msg", async (req, res) => {
 app.get("/saved", async (req, res) => {
   try {
     const id = req.query.id;
-    console.log(id);
     if (!id) {
       throw new Error("Not signed in");
     }
@@ -156,8 +154,41 @@ app.post("/createGrp", async (req, res) => {
       groupName: grpName,
       members: members,
     });
-    return res.status(201).json({message:"Group created successfully",data:newGrp})
+    return res
+      .status(201)
+      .json({ message: "Group created successfully", data: newGrp });
   } catch (e) {
-    return res.status(401).json({message:e.message || "Something went wrong"})
+    return res
+      .status(401)
+      .json({ message: e.message || "Something went wrong" });
+  }
+});
+
+app.post("/checkIfUserExists", async (req, res) => {
+  const { userId, groupId } = req.body;
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(groupId)) {
+      return res.status(400).json({ message: "Invalid userId or groupId" });
+    }
+
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    const isMember = group.members.includes(userId);
+    if (isMember) {
+      return res.status(200).json({ message: `User is already a member of the group`, group });
+    }
+
+    group.members.push(userId);
+    await group.save();
+
+    return res.status(200).json({ message: `You have joined`, group });
+
+  } catch (e) {
+    return res.status(500).json({ message: e.message || "Something went wrong" });
   }
 });

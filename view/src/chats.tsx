@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef,KeyboardEvent } from "react";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import { BsSend } from "react-icons/bs";
@@ -10,7 +10,17 @@ const sender = sessionStorage.getItem("userDetails");
 interface Item {
   _id: string;
 }
+interface Message {
+  id: string;
+  text: string;
+  read?: boolean; 
+  room: string;
+  user: string;
+}
 
+interface ResponseData {
+  resp: Message[];
+}
 export default function Chats() {
   const [response, setResponse] = useState([]);
   const navigate = useNavigate();
@@ -22,6 +32,9 @@ export default function Chats() {
   const [user, setUser] = useState("");
   const [activeChat, setActiveChat] = useState("");
   const messagesEndRef = useRef(null);
+  if (user === "undefined" || !user) {
+    navigate("/");
+  }
 
   useEffect(() => {
     fetch("http://localhost:1025/all", {
@@ -60,7 +73,11 @@ export default function Chats() {
       .then((resp) => resp.json())
       .then((data) => {
         setDmId(data._id);
-        navigate(`/dm/${data._id}`);
+ navigate(`/dm/${data._id}`);        // if (window.innerWidth > 810) {
+        //   navigate(`/dm/${data._id}`);
+        // } else {
+        //   navigate(`/dmPage/${data._id}`);
+        // }
       })
       .catch((e) => console.error(e));
   }
@@ -96,7 +113,7 @@ export default function Chats() {
     }
   };
 
-  const handleKeyPress = (event) => {
+  const handleKeyPress = (event:KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       handleSendMessage();
     }
@@ -112,7 +129,7 @@ export default function Chats() {
         },
       })
         .then((resp) => resp.json())
-        .then((data) => {
+        .then((data:ResponseData) => {
           setMessages(
             data.resp.map((message) => ({ ...message, read: false }))
           );
@@ -125,7 +142,11 @@ export default function Chats() {
   }, [params.dmId, setMessages, setLoading]);
 
   useEffect(() => {
-    socket.on("msg", (newMessage) => {
+    socket.on("msg", (newMessage:Message) => {
+      const audio = new Audio(
+        "../public/Iphone Message Tone Download - MobCup.Com.Co.mp3"
+      );
+      audio.play();
       setMessages((prevMessages) => [
         ...prevMessages,
         { ...newMessage, read: false },
@@ -162,7 +183,6 @@ export default function Chats() {
   if (loading) {
     return <div>Loading...</div>;
   }
-
   return (
     <div className="flex h-screen overflow-y-hidden">
       <div className="w-[25rem] overflow-y-scroll p-4">
@@ -263,7 +283,7 @@ export default function Chats() {
         </div>
       ) : (
         <div className="flex-1 flex justify-center items-center">
-          <h1>No messages</h1>
+          <h1>Enjoy chatting</h1>
         </div>
       )}
     </div>

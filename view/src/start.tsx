@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AiOutlineClose } from "react-icons/ai";
+import { ToastContainer, toast } from "react-toastify";
 
 export default function Start() {
   const navigate = useNavigate();
@@ -8,12 +9,15 @@ export default function Start() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   function Login() {
     setSignedUp(false);
   }
+
   function SignUps() {
     setSignedUp(true);
   }
+
   function SignUserUp() {
     fetch("http://localhost:1025/add", {
       method: "POST",
@@ -30,12 +34,13 @@ export default function Start() {
       .then((data) => {
         console.log(data);
         if (data.msg === "Missing details") {
-          setSignedUp(true);
+          toast.success(data.msg);
         } else {
           setSignedUp(false);
         }
       });
   }
+
   function loginUser() {
     fetch("http://localhost:1025/login", {
       method: "POST",
@@ -49,125 +54,90 @@ export default function Start() {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data.user);
+        console.log(data);
         sessionStorage.setItem("user", data.user);
         sessionStorage.setItem("userDetails", data.id);
-        navigate("/home");
+        if (data.msg) {
+          toast.error(data.msg);
+        } else {
+          navigate("/home");
+        }
       })
       .catch((e) => console.log("Error:", e));
   }
-  return (
-    <div className=" md:w-[500px]">
-      {signedUp ? (
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          className="px-24 border md:w-[500px] bg-white items-center content-center h-screen ml-[500px]"
-        >
-          <AiOutlineClose
-            className="md:ml-[350px] mb-[100px] hover:bg-red-600 hover:text-white cursor-pointer"
-            size={30}
-            onClick={() => navigate("/")}
-          />
 
-          <h1 className=" font-bold px-10 py-10 md:text-4xl text-black">
-            Signup Form
-          </h1>
-          <div className="border mb-6 rounded-lg">
-            <button
-              onClick={SignUps}
-              type="button"
-              className="rounded-lg mr-[0px] bg-blue-600 p-3 px-[60px] text-white"
-            >
-              Signup
-            </button>
-            <button
-              onClick={Login}
-              type="button"
-              className="rounded-lg p-3 px-12 text-black"
-            >
-              Login
-            </button>
-          </div>
-          <div className="flex flex-col md:w-[300px]">
+  return (
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <ToastContainer />
+      <div className="w-full max-w-md bg-white p-8 shadow-lg rounded-lg transition-all duration-500">
+        <AiOutlineClose
+          className="self-end cursor-pointer hover:bg-red-600 hover:text-white p-1 rounded-full"
+          size={30}
+          onClick={() => navigate("/")}
+        />
+
+        <h1 className="text-2xl font-bold mb-6 text-center">
+          {signedUp ? "Signup Form" : "Login Form"}
+        </h1>
+        <div className="flex mb-6">
+          <button
+            onClick={SignUps}
+            type="button"
+            className={`w-1/2 py-2 text-center rounded-l-lg transition-all duration-300 ${
+              signedUp ? "bg-blue-600 text-white" : "bg-gray-200"
+            }`}
+          >
+            Signup
+          </button>
+          <button
+            onClick={Login}
+            type="button"
+            className={`w-1/2 py-2 text-center rounded-r-lg transition-all duration-300 ${
+              signedUp ? "bg-gray-200" : "bg-blue-600 text-white"
+            }`}
+          >
+            Login
+          </button>
+        </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            signedUp ? SignUserUp() : loginUser();
+          }}
+          className="space-y-6"
+        >
+          {signedUp && (
             <input
               type="text"
               name="name"
               placeholder="Username"
-              className="border mb-6 p-3 rounded-lg"
+              className="w-full p-3 border rounded-lg"
               onChange={(e) => setUsername(e.target.value)}
+              required
             />
-            <input
-              type="email"
-              placeholder="your email here"
-              className="border mb-6 p-3 rounded-lg"
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="input Password"
-              className="border mb-6 p-3 rounded-lg"
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <button
-              onClick={SignUserUp}
-              className="bg-blue-900 text-white p-3 mb-6 rounded-lg"
-            >
-              Signup
-            </button>
-          </div>
-        </form>
-      ) : (
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          className="px-24 border md:w-[500px] bg-white items-center content-center h-screen ml-[500px]"
-        >
-          <AiOutlineClose
-            onClick={() => navigate("/")}
-            className="md:ml-[350px] mb-[100px] hover:bg-red-600 hover:text-white cursor-pointer"
-            size={30}
+          )}
+          <input
+            type="email"
+            placeholder={signedUp ? "Your email here" : "Email address"}
+            className="w-full p-3 border rounded-lg"
+            onChange={(e) => setEmail(e.target.value)}
+            required
           />
-          <h1 className=" font-bold px-10 py-10 md:text-4xl text-black">
-            Login Form
-          </h1>
-          <div className="border mb-6 rounded-lg">
-            <button
-              onClick={SignUps}
-              type="button"
-              className="rounded-lg mr-[0px] p-3 px-[60px] text-black"
-            >
-              Signup
-            </button>
-            <button
-              onClick={Login}
-              type="button"
-              className="rounded-lg p-3 px-12 bg-blue-600 text-white"
-            >
-              Login
-            </button>
-          </div>
-          <div className="flex flex-col md:w-[300px]">
-            <input
-              type="email"
-              name="mail"
-              placeholder="Email address"
-              className="border mb-6 p-3 rounded-lg"
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="your password here"
-              className="border mb-6 p-3 rounded-lg"
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <button
-              onClick={loginUser}
-              className="bg-blue-900 text-white p-3 mb-6 rounded-lg"
-            >
-              Login
-            </button>
-          </div>
+          <input
+            type="password"
+            placeholder="Input Password"
+            className="w-full p-3 border rounded-lg"
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button
+            type="submit"
+            className="w-full bg-blue-900 text-white py-3 rounded-lg"
+          >
+            {signedUp ? "Signup" : "Login"}
+          </button>
         </form>
-      )}
+      </div>
     </div>
   );
 }

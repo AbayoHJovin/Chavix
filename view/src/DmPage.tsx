@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useMessages } from "./context/MessageContext";
-import { useNavigate, useParams } from "react-router-dom";
-import { BsSendArrowUp } from "react-icons/bs";
+import { useParams } from "react-router-dom";
+import { BsSend } from "react-icons/bs";
 import { useWebSocket } from "./context/SocketContext";
-
+import Navbar from "./navbar";
+const user = sessionStorage.getItem("user");
 export default function DmPage() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { messages, setMessages, loading, setLoading } = useMessages();
   const { socket } = useWebSocket();
   const params = useParams();
@@ -75,36 +76,9 @@ export default function DmPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen">
-      <nav className="bg-blue-500 text-white p-4 sticky top-0">
-        <ul className="flex justify-center gap-5">
-          <li>
-            <a
-              href="/"
-              className="hover:underline"
-              onClick={() => navigate("/home")}
-            >
-              Home
-            </a>
-          </li>
-          <li>
-            <a href="/" className="hover:underline">
-              Dms
-            </a>
-          </li>
-          <li>
-            <a href="/groups" className="hover:underline">
-              Groups
-            </a>
-          </li>
-          <li>
-            <a href="/settings" className="hover:underline">
-              Settings
-            </a>
-          </li>
-        </ul>
-      </nav>
-      <div className="flex-1 p-4 overflow-y-auto">
+    <div className="flex flex-col h-screen bg-gray-100">
+      <Navbar user={user} />
+      {/* <div className="flex-1 p-4 overflow-y-auto">
         <div className="bg-gray-100 mx-36 flex flex-col h-screen ">
           {messages.length === 0 ? (
             <p>you have no messages yet</p>
@@ -133,7 +107,67 @@ export default function DmPage() {
             size={40}
           />
         </div>
-      </div>
+      </div> */}
+      {dmId.length > 0 ? (
+        <div className="flex-1 flex flex-col overflow-y-scroll p-4 hideScrollbar">
+          <div className="flex-1 p-4 overflow-y-auto mb-4">
+            <div className="bg-gray-100 flex flex-col h-full overflow-y-scroll">
+              {messages.length === 0 ? (
+                <p>You have no messages yet</p>
+              ) : (
+                messages.map((message, index) => (
+                  <div key={index} className={`flex justify-start mb-2`}>
+                    <div className="flex flex-col my-4">
+                      <div className="flex">
+                        <h1 className="text-gray-700 mx-4 font-semibold mb-1">
+                          {message.senderName === user
+                            ? "You"
+                            : message.senderName}
+                        </h1>
+                        <h1>{message.time}</h1>
+                      </div>
+                      <div
+                        className={`${
+                          user === message.senderName
+                            ? "bg-blue-500 rounded-bl-none"
+                            : message.read
+                            ? "bg-gray-500"
+                            : "bg-green-500 rounded-br-none"
+                        }  w-auto text-white rounded-xl py-2 px-4 shadow-md`}
+                      >
+                        {message.text}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+              <div />
+            </div>
+          </div>
+          <div className="flex-none p-4 border-t border-gray-300">
+            <div className="flex items-center">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyPress}
+                className="flex-1 rounded-lg p-2 mr-2 border focus:outline-none"
+                placeholder="Type your message..."
+              />
+              <BsSend
+                onClick={handleSendMessage}
+                className="fill-blue-500 cursor-pointer"
+                size={40}
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col justify-center items-center">
+          <h1 className="mb-4 text-center">Enjoy chatting</h1>
+          {/* Additional content can be added here */}
+        </div>
+      )}
     </div>
   );
 }
