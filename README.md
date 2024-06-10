@@ -4,10 +4,11 @@ Chavix is a real-real time chat app which is built in nodejs as backend framewor
 # How to run chavix
 
  After cloning Chavix, You will need to run the frontend and backend.
-    ** To run frontend
+    # To run frontend
       > cd view
       >npm run dev
-   **To start the server
+   # To start the server
+   
      >npm run dev (This will start both socketio server and backend server, with database connection in mongodb)
 
  # How to test chavix in the browser
